@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BM AI Assistant - Powered by bekimoon</title>
+    <title>BM AI Assistant - Text & Image Generation</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -24,6 +24,7 @@
             --text-light: #ffffff;
             --border-radius: 16px;
             --input-height: 56px;
+            --image-bg: #f9faff;
         }
         
         * {
@@ -106,6 +107,39 @@
             font-weight: 500;
         }
         
+        /* Mode Selector */
+        .mode-selector {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .mode-btn {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 50px;
+            padding: 10px 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .mode-btn.active {
+            background: var(--gradient);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
+        }
+        
+        .mode-btn i {
+            font-size: 1.2rem;
+        }
+        
         /* Chat Container - Fixed Height */
         .chat-container {
             background: var(--card-bg);
@@ -116,7 +150,7 @@
             flex-direction: column;
             position: relative;
             border: 1px solid rgba(67, 97, 238, 0.15);
-            height: 65vh; /* Fixed height */
+            height: 65vh;
         }
         
         .chat-header {
@@ -254,6 +288,78 @@
             color: white;
             font-size: 1.1rem;
             box-shadow: 0 2px 6px rgba(67, 97, 238, 0.2);
+        }
+        
+        /* Image Message Styles */
+        .image-message {
+            align-self: flex-start;
+            background: var(--image-bg);
+            padding: 15px;
+            border-radius: 16px;
+            max-width: 90%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        
+        .generated-image {
+            max-width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            background: #f0f4ff;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .generated-image img {
+            max-width: 100%;
+            max-height: 400px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        
+        .image-placeholder {
+            width: 100%;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f0f4ff;
+            border-radius: 8px;
+            color: var(--primary);
+            font-size: 3rem;
+        }
+        
+        .download-btn {
+            background: var(--gradient);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(67, 97, 238, 0.2);
+        }
+        
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+        }
+        
+        .image-info {
+            font-size: 0.85rem;
+            color: #6c757d;
+            align-self: flex-start;
+            padding: 0 5px;
         }
         
         /* Bold text formatting for emphasized content */
@@ -408,6 +514,18 @@
             50% { transform: translateY(-5px); }
         }
         
+        .image-generating {
+            display: none;
+            align-items: center;
+            padding: 14px 22px;
+            background: var(--ai-bg);
+            border-radius: 18px;
+            align-self: flex-start;
+            gap: 8px;
+            margin-left: 60px;
+            box-shadow: var(--shadow);
+        }
+        
         /* Error Message */
         .error-message {
             background: #ffecec;
@@ -421,26 +539,6 @@
             align-self: center;
             max-width: 80%;
             box-shadow: 0 2px 8px rgba(255, 82, 82, 0.15);
-        }
-        
-        /* Typing Animation */
-        .typing-text {
-            display: inline;
-        }
-        
-        .typing-cursor {
-            display: inline-block;
-            width: 8px;
-            height: 1.2em;
-            background: var(--accent);
-            margin-left: 2px;
-            animation: blink 0.7s infinite;
-            vertical-align: middle;
-        }
-        
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
         }
         
         /* Scrollbar styling */
@@ -537,6 +635,16 @@
                 font-size: 0.95rem;
             }
             
+            .mode-selector {
+                gap: 10px;
+                margin-bottom: 15px;
+            }
+            
+            .mode-btn {
+                padding: 8px 16px;
+                font-size: 0.9rem;
+            }
+            
             .chat-header {
                 padding: 12px 15px;
                 gap: 10px;
@@ -595,8 +703,12 @@
                 height: 32px;
             }
             
-            .typing-indicator {
+            .typing-indicator, .image-generating {
                 margin-left: 50px;
+            }
+            
+            .generated-image {
+                max-width: 90%;
             }
         }
         
@@ -621,6 +733,11 @@
             
             .logo-icon i {
                 font-size: 1.5rem;
+            }
+            
+            .mode-btn {
+                padding: 7px 14px;
+                font-size: 0.85rem;
             }
             
             .example-questions {
@@ -682,13 +799,22 @@
                 </div>
                 <h1>BM AI Assistant</h1>
             </div>
-            <p class="subtitle">Your intelligent assistant for instant answers and insights</p>
+            <p class="subtitle">Your intelligent assistant for answers and AI image generation</p>
+            
+            <div class="mode-selector">
+                <button id="chat-mode-btn" class="mode-btn active">
+                    <i class="fas fa-comments"></i> Text Chat
+                </button>
+                <button id="image-mode-btn" class="mode-btn">
+                    <i class="fas fa-image"></i> Generate Image
+                </button>
+            </div>
             
             <div class="example-questions">
                 <div class="example-question">Explain quantum computing in simple terms</div>
                 <div class="example-question">How to make sourdough starter?</div>
-                <div class="example-question">Best strategies for learning a new language</div>
-                <div class="example-question">History of artificial intelligence</div>
+                <div class="example-question">A futuristic city with flying cars</div>
+                <div class="example-question">A cat wearing sunglasses on a beach</div>
             </div>
         </header>
         
@@ -715,7 +841,7 @@
                         <div class="ai-avatar">
                             <i class="fas fa-robot"></i>
                         </div>
-                        <div class="typing-text">Hello! I'm your BM AI assistant. How can I help you today? You can ask me anything - from explaining complex concepts to helping with creative projects. Try one of the example questions above or type your own!</div>
+                        <div class="typing-text">Hello! I'm your BM AI assistant. I can answer questions or generate images from text. Switch modes using the buttons above!</div>
                         <span class="typing-cursor"></span>
                     </div>
                     
@@ -728,6 +854,11 @@
                         <span></span>
                         <span></span>
                         <span>Thinking...</span>
+                    </div>
+                    
+                    <div class="image-generating" id="image-generating">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>Generating image...</span>
                     </div>
                     
                     <div class="scroll-indicator" id="scroll-indicator">
@@ -749,7 +880,7 @@
         <footer>
             <p>© 2025 BM AI Assistant | All rights reserved</p>
             <div class="powered-by">
-                <span>Powered by Bekimoon AI Technology</span>
+                <span>Powered by Bekimoon AI & Together AI</span>
             </div>
         </footer>
     </div>
@@ -760,33 +891,102 @@
             const sendBtn = document.getElementById('send-btn');
             const chatMessages = document.getElementById('chat-messages');
             const typingIndicator = document.getElementById('typing-indicator');
+            const imageGenerating = document.getElementById('image-generating');
             const exampleQuestions = document.querySelectorAll('.example-question');
             const errorMessage = document.getElementById('error-message');
             const statusIndicator = document.getElementById('status-indicator');
             const scrollIndicator = document.getElementById('scroll-indicator');
             const newChatBtn = document.getElementById('new-chat-btn');
+            const chatModeBtn = document.getElementById('chat-mode-btn');
+            const imageModeBtn = document.getElementById('image-mode-btn');
             
             // API configuration
             const API_KEY = "ff8353813fdf425a7d77c7d21c2211b24d98a989aaccdd6e6a7485580160ca7b";
-            const API_ENDPOINT = "https://api.together.ai/v1/chat/completions";
-            const MODEL = "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo";
+            const CHAT_API_ENDPOINT = "https://api.together.ai/v1/chat/completions";
+            const IMAGE_API_ENDPOINT = "https://api.together.ai/v1/images/generations";
+            const CHAT_MODEL = "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo";
+            const IMAGE_MODEL = "black-forest-labs/FLUX.1-schnell-Free"; // Free image model [citation:2][citation:9]
+            
+            let currentMode = 'chat'; // 'chat' or 'image'
             
             // Focus input on load
             setTimeout(() => {
                 userInput.focus();
-                userInput.placeholder = "Ask me anything...";
+                updatePlaceholder();
             }, 500);
             
+            // Function to update input placeholder based on mode
+            function updatePlaceholder() {
+                userInput.placeholder = currentMode === 'chat' 
+                    ? "Ask me anything..." 
+                    : "Describe the image you want to generate...";
+            }
+            
+            // Mode switching
+            chatModeBtn.addEventListener('click', function() {
+                currentMode = 'chat';
+                chatModeBtn.classList.add('active');
+                imageModeBtn.classList.remove('active');
+                updatePlaceholder();
+                userInput.focus();
+            });
+            
+            imageModeBtn.addEventListener('click', function() {
+                currentMode = 'image';
+                imageModeBtn.classList.add('active');
+                chatModeBtn.classList.remove('active');
+                updatePlaceholder();
+                userInput.focus();
+            });
+            
             // Function to add a message to the chat
-            function addMessage(content, isUser = false) {
+            function addMessage(content, isUser = false, isImage = false) {
                 const messageDiv = document.createElement('div');
-                messageDiv.classList.add('message');
-                messageDiv.classList.add(isUser ? 'user-message' : 'ai-message');
                 
-                if (isUser) {
+                if (isImage) {
+                    messageDiv.classList.add('message', 'image-message');
+                    
+                    const avatarDiv = document.createElement('div');
+                    avatarDiv.className = 'ai-avatar';
+                    avatarDiv.innerHTML = '<i class="fas fa-image"></i>';
+                    messageDiv.appendChild(avatarDiv);
+                    
+                    const imageContainer = document.createElement('div');
+                    imageContainer.className = 'generated-image';
+                    
+                    if (content) {
+                        const img = document.createElement('img');
+                        img.src = content;
+                        img.alt = "AI Generated Image";
+                        imageContainer.appendChild(img);
+                    } else {
+                        const placeholder = document.createElement('div');
+                        placeholder.className = 'image-placeholder';
+                        placeholder.innerHTML = '<i class="fas fa-image"></i>';
+                        imageContainer.appendChild(placeholder);
+                    }
+                    
+                    messageDiv.appendChild(imageContainer);
+                    
+                    const infoDiv = document.createElement('div');
+                    infoDiv.className = 'image-info';
+                    infoDiv.textContent = "Generated with Flux.1 Schnell model";
+                    messageDiv.appendChild(infoDiv);
+                    
+                    const downloadBtn = document.createElement('button');
+                    downloadBtn.className = 'download-btn';
+                    downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download Image';
+                    downloadBtn.addEventListener('click', function() {
+                        downloadImage(content, 'ai-generated-image.png');
+                    });
+                    messageDiv.appendChild(downloadBtn);
+                    
+                } else if (isUser) {
+                    messageDiv.classList.add('message', 'user-message');
                     messageDiv.textContent = content;
                 } else {
-                    // For AI messages, add avatar and text container
+                    messageDiv.classList.add('message', 'ai-message');
+                    
                     const avatarDiv = document.createElement('div');
                     avatarDiv.className = 'ai-avatar';
                     avatarDiv.innerHTML = '<i class="fas fa-robot"></i>';
@@ -797,7 +997,6 @@
                     textContainer.textContent = '';
                     messageDiv.appendChild(textContainer);
                     
-                    // Create blinking cursor
                     const cursor = document.createElement('span');
                     cursor.className = 'typing-cursor';
                     messageDiv.appendChild(cursor);
@@ -806,6 +1005,16 @@
                 chatMessages.appendChild(messageDiv);
                 scrollToBottom();
                 return messageDiv;
+            }
+            
+            // Function to download image
+            function downloadImage(dataUrl, filename) {
+                const link = document.createElement('a');
+                link.href = dataUrl;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
             }
             
             // Function to simulate typing effect with bold formatting
@@ -878,6 +1087,17 @@
                 scrollToBottom();
             }
             
+            // Function to show image generating indicator
+            function showImageGenerating(show) {
+                imageGenerating.style.display = show ? 'flex' : 'none';
+                if (show) {
+                    statusIndicator.classList.add('pulse');
+                } else {
+                    statusIndicator.classList.remove('pulse');
+                }
+                scrollToBottom();
+            }
+            
             // Function to show error message
             function showError(message) {
                 errorMessage.textContent = message || 'There was an error processing your request. Please try again later.';
@@ -917,18 +1137,18 @@
                 try {
                     updateConnectionStatus(true);
                     
-                    const response = await fetch(API_ENDPOINT, {
+                    const response = await fetch(CHAT_API_ENDPOINT, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${API_KEY}`
                         },
                         body: JSON.stringify({
-                            model: MODEL,
+                            model: CHAT_MODEL,
                             messages: [
                                 {
                                     role: "system",
-                                    content: "You are a helpful assistant named Bekimoon AI. Provide clear, concise, and accurate answers to the user's questions. Format your answers for readability. your creator is bereket amare. Emphasize important words or phrases by wrapping them in single asterisks (*). For example: This is *very important*. Avoid using markdown formatting. Your responses should be professional yet approachable."
+                                    content: "You are a helpful assistant named Bekimoon AI. Provide clear, concise, and accurate answers to the user's questions. Format your answers for readability. Emphasize important words or phrases by wrapping them in single asterisks (*). For example: This is *very important*. Avoid using markdown formatting. Your responses should be professional yet approachable."
                                 },
                                 {
                                     role: "user",
@@ -957,45 +1177,112 @@
                 }
             }
             
+            // Function to generate image from text using Flux model
+            async function generateImageFromText(prompt) {
+                try {
+                    updateConnectionStatus(true);
+                    
+                    const response = await fetch(IMAGE_API_ENDPOINT, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${API_KEY}`
+                        },
+                        body: JSON.stringify({
+                            model: IMAGE_MODEL,
+                            prompt: prompt,
+                            width: 1024,
+                            height: 1024,
+                            steps: 3, // Faster generation with fewer steps [citation:4]
+                            n: 1,
+                            response_format: "base64" // Get base64 for direct display
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Image generation failed: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    return `data:image/png;base64,${data.data[0].b64_json}`;
+                } catch (error) {
+                    console.error('Image Generation Error:', error);
+                    updateConnectionStatus(false);
+                    throw error;
+                }
+            }
+            
             // Handle send button click
             sendBtn.addEventListener('click', async function() {
-                const question = userInput.value.trim();
-                if (!question) return;
+                const inputText = userInput.value.trim();
+                if (!inputText) return;
                 
                 // Add user message
-                addMessage(question, true);
+                const userPrefix = currentMode === 'image' ? "Generate image: " : "";
+                addMessage(userPrefix + inputText, true);
                 userInput.value = '';
                 
-                // Show typing indicator
-                showTyping(true);
-                
-                // Disable button during processing
-                sendBtn.disabled = true;
-                
-                try {
-                    // Get AI response from Together API
-                    const response = await getAIResponseFromTogetherAPI(question);
+                if (currentMode === 'chat') {
+                    // Show typing indicator
+                    showTyping(true);
                     
-                    // Remove typing indicator
-                    showTyping(false);
+                    // Disable button during processing
+                    sendBtn.disabled = true;
                     
-                    // Create AI message element
-                    const aiMessageElement = addMessage('', false);
+                    try {
+                        // Get AI response from Together API
+                        const response = await getAIResponseFromTogetherAPI(inputText);
+                        
+                        // Remove typing indicator
+                        showTyping(false);
+                        
+                        // Create AI message element
+                        const aiMessageElement = addMessage('', false);
+                        
+                        // Type out the response with bold formatting
+                        await typeMessage(aiMessageElement, response);
+                    } catch (error) {
+                        showTyping(false);
+                        showError(error.message);
+                    } finally {
+                        // Re-enable button
+                        sendBtn.disabled = false;
+                        
+                        // Focus input for next question
+                        userInput.focus();
+                        
+                        // Scroll to bottom after everything is done
+                        scrollToBottom();
+                    }
+                } else if (currentMode === 'image') {
+                    // Show image generating indicator
+                    showImageGenerating(true);
                     
-                    // Type out the response with bold formatting
-                    await typeMessage(aiMessageElement, response);
-                } catch (error) {
-                    showTyping(false);
-                    showError(error.message);
-                } finally {
-                    // Re-enable button
-                    sendBtn.disabled = false;
+                    // Disable button during processing
+                    sendBtn.disabled = true;
                     
-                    // Focus input for next question
-                    userInput.focus();
-                    
-                    // Scroll to bottom after everything is done
-                    scrollToBottom();
+                    try {
+                        // Generate image from text
+                        const imageData = await generateImageFromText(inputText);
+                        
+                        // Remove generating indicator
+                        showImageGenerating(false);
+                        
+                        // Create image message element
+                        addMessage(imageData, false, true);
+                    } catch (error) {
+                        showImageGenerating(false);
+                        showError(error.message);
+                    } finally {
+                        // Re-enable button
+                        sendBtn.disabled = false;
+                        
+                        // Focus input for next question
+                        userInput.focus();
+                        
+                        // Scroll to bottom after everything is done
+                        scrollToBottom();
+                    }
                 }
             });
             
